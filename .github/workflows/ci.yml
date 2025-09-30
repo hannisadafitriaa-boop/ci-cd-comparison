@@ -25,7 +25,20 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run tests
+      - name: Install monitoring tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y sysstat
+
+      - name: Run tests with monitoring
         run: |
           source venv/bin/activate
+          # jalankan pidstat selama tes, hasil simpan ke file
+          pidstat -u -r -h 1 20 > pidstat_report.txt &
           pytest -q
+
+      - name: Upload monitoring report
+        uses: actions/upload-artifact@v3
+        with:
+          name: pidstat-report
+          path: pidstat_report.txt
