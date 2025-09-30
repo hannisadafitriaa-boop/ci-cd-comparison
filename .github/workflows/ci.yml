@@ -25,19 +25,27 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Install pidstat (sysstat)
+      - name: Install monitoring tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y sysstat
+          sudo apt-get install -y sysstat time procps
 
       - name: Run tests with monitoring
         run: |
           source venv/bin/activate
-          pidstat -u -r -h 1 10 > pidstat_report.txt &
-          pytest -q
+          # jalankan pidstat (kalau ada) atau fallback ke time
+          if command -v pidstat; then
+            pidstat -u -r -h 1 10 > pidstat_report.txt &
+            pytest -q
+          else
+            /usr/bin/time -v pytest -q 2> time_report.txt
+          fi
 
-      - name: Upload pidstat report
+      - name: Upload monitoring report
         uses: actions/upload-artifact@v3
         with:
-          name: pidstat-report
-          path: pidstat_report.txt
+          name: monitoring-report
+          path: |
+            pidstat_report.txt
+            time_report.txt
+          if-no-files-found: ignore
