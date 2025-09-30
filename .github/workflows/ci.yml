@@ -28,17 +28,19 @@ jobs:
       - name: Install monitoring tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y sysstat
+          sudo apt-get install -y sysstat procps
 
-      - name: Run tests with monitoring
+      - name: Run tests with CPU & Memory monitoring
         run: |
           source venv/bin/activate
-          # jalankan pidstat selama tes, hasil simpan ke file
+          # Jalankan pidstat tiap 1 detik selama 20 detik, rekam CPU & Memory
           pidstat -u -r -h 1 20 > pidstat_report.txt &
+          PIDSTAT_PID=$!
           pytest -q
+          kill $PIDSTAT_PID || true
 
       - name: Upload monitoring report
         uses: actions/upload-artifact@v3
         with:
-          name: pidstat-report
+          name: monitoring-report
           path: pidstat_report.txt
