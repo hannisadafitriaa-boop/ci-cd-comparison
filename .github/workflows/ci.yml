@@ -25,22 +25,19 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Install monitoring tools
+      - name: Check system resources (before tests)
         run: |
-          sudo apt-get update
-          sudo apt-get install -y sysstat procps
+          echo "=== CPU & Memory BEFORE ==="
+          top -b -n 1 | head -20
+          free -h
 
-      - name: Run tests with CPU & Memory monitoring
+      - name: Run tests
         run: |
           source venv/bin/activate
-          # Jalankan pidstat tiap 1 detik selama 20 detik, rekam CPU & Memory
-          pidstat -u -r -h 1 20 > pidstat_report.txt &
-          PIDSTAT_PID=$!
           pytest -q
-          kill $PIDSTAT_PID || true
 
-      - name: Upload monitoring report
-        uses: actions/upload-artifact@v3
-        with:
-          name: monitoring-report
-          path: pidstat_report.txt
+      - name: Check system resources (after tests)
+        run: |
+          echo "=== CPU & Memory AFTER ==="
+          top -b -n 1 | head -20
+          free -h
