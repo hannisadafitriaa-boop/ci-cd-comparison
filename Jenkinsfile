@@ -10,7 +10,7 @@ pipeline {
       steps {
         sh '''
           apt-get update
-          apt-get install -y python3 python3-pip
+          apt-get install -y python3 python3-pip python3-venv
           python3 --version
           pip3 --version
         '''
@@ -18,12 +18,20 @@ pipeline {
     }
     stage('Install dependencies') {
       steps {
-        sh 'pip3 install -r requirements.txt'
+        sh '''
+          python3 -m venv venv
+          . venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
+        '''
       }
     }
     stage('Run tests') {
       steps {
-        sh 'pytest -q'
+        sh '''
+          . venv/bin/activate
+          pytest -q
+        '''
       }
     }
   }
