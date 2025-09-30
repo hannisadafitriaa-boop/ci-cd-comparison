@@ -25,7 +25,23 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run tests
+      - name: Install sysstat (for pidstat)
+        run: sudo apt-get update && sudo apt-get install -y sysstat
+
+      - name: Run tests with monitoring
         run: |
           source venv/bin/activate
+          echo "=== Start Monitoring ==="
+          pidstat -u -r -h 1 30 > pidstat_report.txt &
+          MON_PID=$!
+
           pytest -q
+
+          kill $MON_PID || true
+          echo "=== Monitoring Finished ==="
+
+      - name: Upload monitoring report
+        uses: actions/upload-artifact@v3
+        with:
+          name: pidstat-report
+          path: pidstat_report.txt
