@@ -21,12 +21,12 @@ jobs:
       - name: Install dependencies (venv)
         run: |
           sudo apt-get update
-          sudo apt-get install -y sysstat   # <--- biar ada pidstat
+          sudo apt-get install -y sysstat   # untuk pidstat
           python -m venv venv
           source venv/bin/activate
           pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pytest
+          pip install pytest pip-audit bandit
 
       - name: Check system resources (before tests)
         run: |
@@ -49,3 +49,15 @@ jobs:
           echo "=== CPU & Memory AFTER ==="
           top -b -n 1 | head -20
           free -h
+
+      - name: Security Scan - Dependencies (pip-audit)
+        run: |
+          source venv/bin/activate
+          echo "=== Running pip-audit ==="
+          pip-audit -r requirements.txt || true
+
+      - name: Security Scan - Code (bandit)
+        run: |
+          source venv/bin/activate
+          echo "=== Running bandit ==="
+          bandit -r . || true
