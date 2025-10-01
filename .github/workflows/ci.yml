@@ -20,10 +20,13 @@ jobs:
 
       - name: Install dependencies (venv)
         run: |
+          sudo apt-get update
+          sudo apt-get install -y sysstat   # <--- biar ada pidstat
           python -m venv venv
           source venv/bin/activate
           pip install --upgrade pip
           pip install -r requirements.txt
+          pip install pytest
 
       - name: Check system resources (before tests)
         run: |
@@ -31,10 +34,15 @@ jobs:
           top -b -n 1 | head -20
           free -h
 
-      - name: Run tests
+      - name: Monitor resources (pidstat)
+        run: |
+          echo "=== PIDSTAT MONITORING (10s) ==="
+          pidstat -u -r -h 1 10
+
+      - name: Run tests (with metrics)
         run: |
           source venv/bin/activate
-          pytest -q
+          /usr/bin/time -v pytest -q
 
       - name: Check system resources (after tests)
         run: |
