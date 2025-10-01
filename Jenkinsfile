@@ -4,11 +4,6 @@ pipeline {
     docker { image 'python:3.10' }
   }
   stages {
-    stage('Checkout') {
-      steps {
-        git branch: 'main', url: 'https://github.com/hannisadafitriaa-boop/ci-cd-comparison.git'
-      }
-    }
     stage('Install dependencies') {
       steps {
         sh '''
