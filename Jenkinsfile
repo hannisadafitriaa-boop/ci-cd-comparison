@@ -1,26 +1,17 @@
+// updated to use python:3.10 docker image
 pipeline {
-  agent any
+  agent {
+    docker { image 'python:3.10' }
+  }
   stages {
     stage('Checkout') {
       steps {
         git branch: 'main', url: 'https://github.com/hannisadafitriaa-boop/ci-cd-comparison.git'
       }
     }
-    stage('Setup Python') {
-      steps {
-        sh '''
-          apt-get update
-          apt-get install -y python3 python3-pip python3-venv
-          python3 --version
-          pip3 --version
-        '''
-      }
-    }
     stage('Install dependencies') {
       steps {
         sh '''
-          python3 -m venv venv
-          . venv/bin/activate
           pip install --upgrade pip
           pip install -r requirements.txt
         '''
@@ -28,9 +19,17 @@ pipeline {
     }
     stage('Run tests') {
       steps {
+        sh 'pytest -q'
+      }
+    }
+    stage('Security Scan') {
+      steps {
         sh '''
-          . venv/bin/activate
-          pytest -q
+          pip install bandit safety
+          echo "=== Running Bandit (code security) ==="
+          bandit -r . || true
+          echo "=== Running Safety (dependency check) ==="
+          safety check -r requirements.txt || true
         '''
       }
     }
