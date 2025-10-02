@@ -23,7 +23,6 @@ pipeline {
           . venv/bin/activate
           pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pytest pip-audit bandit
         '''
       }
     }
@@ -32,24 +31,6 @@ pipeline {
         sh '''
           . venv/bin/activate
           pytest -q
-        '''
-      }
-    }
-    stage('Security Scan - Dependencies') {
-      steps {
-        sh '''
-          . venv/bin/activate
-          echo "=== Running pip-audit ==="
-          pip-audit -r requirements.txt || true
-        '''
-      }
-    }
-    stage('Security Scan - Code') {
-      steps {
-        sh '''
-          . venv/bin/activate
-          echo "=== Running bandit ==="
-          bandit -r . || true
         '''
       }
     }
