@@ -20,13 +20,10 @@ jobs:
 
       - name: Install dependencies (venv)
         run: |
-          sudo apt-get update
-          sudo apt-get install -y sysstat   # untuk pidstat
           python -m venv venv
           source venv/bin/activate
           pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pytest pip-audit bandit
 
       - name: Check system resources (before tests)
         run: |
@@ -34,15 +31,10 @@ jobs:
           top -b -n 1 | head -20
           free -h
 
-      - name: Monitor resources (pidstat)
-        run: |
-          echo "=== PIDSTAT MONITORING (10s) ==="
-          pidstat -u -r -h 1 10
-
-      - name: Run tests (with metrics)
+      - name: Run tests
         run: |
           source venv/bin/activate
-          /usr/bin/time -v pytest -q
+          pytest -q
 
       - name: Check system resources (after tests)
         run: |
@@ -50,14 +42,16 @@ jobs:
           top -b -n 1 | head -20
           free -h
 
-      - name: Security Scan - Dependencies (pip-audit)
-        run: |
-          source venv/bin/activate
-          echo "=== Running pip-audit ==="
-          pip-audit -r requirements.txt || true
+  deploy:
+    needs: build   # hanya jalan kalau job build sukses
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Security Scan - Code (bandit)
-        run: |
-          source venv/bin/activate
-          echo "=== Running bandit ==="
-          bandit -r . || true
+      - name: Deploy to Heroku
+        uses: akhileshns/heroku-deploy@v3.12.12
+        with:
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_app_name: "nama-aplikasi-kamu"
+          heroku_email: "hannisadafitriaa@gmail.com"
